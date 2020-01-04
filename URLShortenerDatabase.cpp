@@ -4,11 +4,12 @@ using namespace std;
 
 #include "URLShortenerFactory.hpp"
 
-int getWord(char linestr[2071], int startIndex, char word[14], char delimiter)
+int getWord(const string linestr, const int startIndex, char * word, const char delimiter)
 {
+	int lenLine = linestr.size();
 	int result = startIndex;
 	int index = 0;
-	while(linestr[result] != delimiter)
+	while((linestr[result] != delimiter) && (result <= (lenLine-1)))
 	{
 		word[index] = linestr[result];
 		result++;
@@ -19,27 +20,33 @@ int getWord(char linestr[2071], int startIndex, char word[14], char delimiter)
 	return result;
 }
 
-void getValues(char linestr[2071], URLShortenerFactory &urlShort)
+void getValues(const string linestr, URLShortenerFactory &urlShort)
 {
-	char id[14];
-	char shortLink[8];
-	char longLink[2049];
+	const int ID_LENGTH = 13;
+	const int SHORT_LINK_LENGTH = 7;
+	const int LONG_LINK_LENGTH = 2048;
+
+	char id[ID_LENGTH+1];
+	char shortLink[SHORT_LINK_LENGTH+1];
+	char longLink[LONG_LINK_LENGTH+1];
 	// get id
 	int index=0;
 	index = getWord(linestr, index, id, ' ');
-	
+	// validate id is null terminated, has proper length. handle exception
+
 	// get short link
 	index++;
 	index = getWord(linestr, index, shortLink, ' ');
+	// validate shortLink is null terminated, has proper length. handle exception
 		
 	// get long link
 	index++;
-	index = getWord(linestr, index, longLink, '\n');
-	
+	index = getWord(linestr, index, longLink, '\0');
+	// validate longLink is null terminated, has proper length. handle exception
 
-	cout << "id:" << id << endl;
-	cout << "shortLink:" << shortLink << endl;
-	cout << "longLink:" << longLink << endl;
+	//cout << "id:" << id << endl;
+	//cout << "shortLink:" << shortLink << endl;
+	//cout << "longLink:" << longLink << endl;
 	urlShort.setId(strtoull(id, NULL, 10));
 	urlShort.setShortLink(shortLink);
 	urlShort.setLongLink(longLink);
@@ -47,7 +54,7 @@ void getValues(char linestr[2071], URLShortenerFactory &urlShort)
 	return;
 }
 
-bool isPresentOriginalLink(string originalLink, URLShortenerFactory &urlShort)
+bool isPresentOriginalLink(const string originalLink, URLShortenerFactory &urlShort)
 {
 	bool result = false;
 	// check database to see if orginal link is there.
@@ -60,11 +67,14 @@ bool isPresentOriginalLink(string originalLink, URLShortenerFactory &urlShort)
 		// throw exception
 		//return (-1);
 	}
-	char linestr[2071];
+	const int MAX_DB_LINE_LENGTH = 2070;
+	char linestr[MAX_DB_LINE_LENGTH+1];
 	while(!feof(fpIn))
 	{
-		fgets(linestr, 2071, fpIn);
-		cout << "linestr is:" << linestr << endl;
+		fgets(linestr, MAX_DB_LINE_LENGTH+1, fpIn);
+		// fgets appends \0 character
+		// validate linestr is null terminated string. handle exception
+		//cout << "linestr is:" << linestr << endl;
 		// get originalLink
 		getValues(linestr, urlShort);
 
@@ -75,14 +85,14 @@ bool isPresentOriginalLink(string originalLink, URLShortenerFactory &urlShort)
 		}
 
 		// avoid comparison with \n
-		fgets(linestr, 2071, fpIn);
+		fgets(linestr, 2, fpIn);
 	}
 	fclose(fpIn);
 
 	return result;
 }
 
-bool isPresentShortLink(string shortenedLink, URLShortenerFactory &urlShort)
+bool isPresentShortLink(const string shortenedLink, URLShortenerFactory &urlShort)
 {
 	bool result = false;
 	// check database to see if orginal link is there.
@@ -95,11 +105,14 @@ bool isPresentShortLink(string shortenedLink, URLShortenerFactory &urlShort)
 		// throw exception
 		//return (-1);
 	}
-	char linestr[2071];
+	const int MAX_DB_LINE_LENGTH = 2070;
+	char linestr[MAX_DB_LINE_LENGTH+1];
 	while(!feof(fpIn))
 	{
-		fgets(linestr, 2071, fpIn);
-		cout << "linestr is:" << linestr << endl;
+		fgets(linestr, MAX_DB_LINE_LENGTH+1, fpIn);
+		// fgets appends \0 character
+		// validate linestr is null terminated string. handle exception
+		//cout << "linestr is:" << linestr << endl;
 		// get shortenedLink
 		getValues(linestr, urlShort);
 
@@ -110,7 +123,7 @@ bool isPresentShortLink(string shortenedLink, URLShortenerFactory &urlShort)
 		}
 
 		// avoid comparison with \n
-		fgets(linestr, 2071, fpIn);
+		fgets(linestr, 2, fpIn);
 	}
 	fclose(fpIn);
 
@@ -129,25 +142,40 @@ unsigned long long int getCurrentRandomId()
 		// throw exception
 		//return (-1);
 	}
-	char linestr[14];
-	fgets(linestr, 14, fpIn);
+	const int ID_LENGTH = 13;
+	char linestr[ID_LENGTH+1];
+	fgets(linestr, ID_LENGTH+1, fpIn);
+	// fgets appends \0 character
+	// validate linestr is null terminated string. handle exception
 	string stringResult = linestr;
 		
 	result = strtoull(stringResult.c_str(), NULL, 10);
-		
+	// validate result. handle exception if any.
+
 	return result;
 }
 
-void setCurrentRandomId(unsigned long long int newId)
+void setCurrentRandomId(const unsigned long long int newId)
 {
 	// we are persisting this id in first line of file, store/update it there.
+	FILE * fpOut;
+	fpOut = fopen("currentId.txt", "w+");
+	if(fpOut==NULL)
+	{
+		cout << "couldn't open file" << endl;
+		// throw exception
+		//return (-1);
+	}
+	fputs(to_string(newId).c_str(), fpOut);
+	fclose(fpOut);
+	
 	return;
 }
 
 void updateDb(URLShortenerFactory &urlShort)
 {
 	FILE * fpOut;
-	fpOut = fopen("urls.txt", "a");
+	fpOut = fopen("url.txt", "a");
 	if(fpOut==NULL)
 	{
 		cout << "couldn't open file" << endl;
@@ -156,7 +184,10 @@ void updateDb(URLShortenerFactory &urlShort)
 	}
 	
 	fputs("\n", fpOut);
-	fputs(urlShort.to_String().c_str(), fpOut);
+	string dbLine = urlShort.to_String();
+	cout << "dbLine is:" << dbLine << endl;
+	fputs(dbLine.c_str(), fpOut);
 	fclose(fpOut);
+
 	return;
 }

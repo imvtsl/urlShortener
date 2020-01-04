@@ -5,12 +5,12 @@ using namespace std;
 #include "URLShortenerFactory.hpp"
 #include "URLShortenerDatabase.hpp"
 
-string decimalToBase62(unsigned long long int num);
+string decimalToBase62(const unsigned long long int num);
 
-string generateShortLink(unsigned long long int newId);
+string generateShortLink(const unsigned long long int newId);
 
-void generate(string originalLink, const char * shortenedLink);
+void generate(const string originalLink, char * shortenedLink);
 
-void getOriginalLink(string shortenedLink, const char * originalLink);
+void getOriginalLink(const string shortenedLink, char * originalLink);
 
 void urlShortener(string queryType);

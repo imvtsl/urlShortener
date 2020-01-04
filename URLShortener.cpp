@@ -1,34 +1,43 @@
 #include <iostream>
+#include <cstring>
 
 using namespace std;
 
 #include "URLShortenerFactory.hpp"
 #include "URLShortenerDatabase.hpp"
 
-string decimalToBase62(unsigned long long int num)
+string decimalToBase62(const unsigned long long int num)
 {
-	const char base62Digits[62] = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'};
+	const string RESULT_NUM_0 = "0";
+	if(num == 0)
+		return RESULT_NUM_0;
+
+	const int BASE = 62;
+	const char base62Digits[BASE] = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'};
 	unsigned long long int temp = num;
 	string result;
-	if(num == 0)
-		return "0";
+	
 	while(temp!=0)
 	{
-		char c = base62Digits[temp%62];
+		char c = base62Digits[temp%BASE];
+		// insert at front
 		result.insert(0, 1, c);
-		temp = temp/62;
+		temp = temp/BASE;
 	}
+	// append null terminated character
+	result.push_back('\0');
 	return result;
+	// does it return null terminated string if num=0?
 }
 
-string generateShortLink(unsigned long long int newId)
+string generateShortLink(const unsigned long long int newId)
 {
 	return(decimalToBase62(newId));
 }
 
-void generate(string originalLink, const char * shortenedLink)
+void generate(const string originalLink, char * shortenedLink)
 {
-	//string result;
+	// validate and handle originalLink
 	URLShortenerFactory urlShort;
 	unsigned long long int id;
 	unsigned long long int newId;
@@ -41,6 +50,7 @@ void generate(string originalLink, const char * shortenedLink)
 	else
 	{
 		id = getCurrentRandomId();
+		// validate if we have reached limit
 		newId = id+1;
 		urlShort.setId(newId);
 		urlShort.setLongLink(originalLink);
@@ -48,30 +58,41 @@ void generate(string originalLink, const char * shortenedLink)
 		setCurrentRandomId(newId);
 		updateDb(urlShort);
 	}
-	shortenedLink = (urlShort.getShortLink()).c_str();
+	string temp = urlShort.getShortLink();
+	strncpy(shortenedLink, temp.c_str(), temp.size()+1);
 	return;
 }
 
-void getOriginalLink(string shortenedLink, const char * originalLink)
+void getOriginalLink(const string shortenedLink, char * originalLink)
 {
-	//string result = NULL;
+	// validate and handle originalLink
 	// check if corresponding entry for shortenedLink exists. if yes, return that.
 	// else return null.
 	URLShortenerFactory urlShort;
+	string temp;
 	if(isPresentShortLink(shortenedLink, urlShort))
-		originalLink = (urlShort.getLongLink()).c_str();
+	{
+		temp = urlShort.getLongLink();
+		strncpy(originalLink, temp.c_str(), temp.size()+1);
+	}
 	return;
 }
 
 void urlShortener(string queryType)
 {
-	//URLShortener urlShort;
+	// validate and handle queryType
+	const int SHORT_LINK_LENGTH = 7;
+	const int ORIGINAL_LINK_LENGTH = 2048;
 
-	char shortenedLink[8];
-	char originalLink[2049];
+	char shortenedLink[SHORT_LINK_LENGTH+1];
+	char originalLink[ORIGINAL_LINK_LENGTH+1] = "";
+	//cout << "queryType is:" << queryType << endl;
 	if(queryType == "generate")
 	{
-		cin.getline(originalLink, 2048);
+		//cout << "inside if generate" << endl;
+		//cout << "queryType is:" << queryType << endl;
+		cin.getline(originalLink, ORIGINAL_LINK_LENGTH);
+		// validate and handle originalLink
 		generate(originalLink, shortenedLink);
 		//append domain name to shortenedLink.
 		string result = "vat.sl/";
@@ -80,10 +101,11 @@ void urlShortener(string queryType)
 	}
 	else if(queryType == "getLink")
 	{
-		cin.getline(shortenedLink, 7);
+		cin.getline(shortenedLink, SHORT_LINK_LENGTH);
 		getOriginalLink(shortenedLink, originalLink);
-		if(originalLink == NULL)
-			cout << "Original URL does not exist in database.";
+		// null check on char array
+		if(originalLink[0] == '\0')
+			cout << "Original URL does not exist in database." << endl;
 		else
 			cout << "Original URL is:" << originalLink << endl;
 	}

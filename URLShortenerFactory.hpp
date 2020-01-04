@@ -17,35 +17,37 @@ public:
 	{
 	 	return Id;
 	}
-	void setId(unsigned long long int id)
+	void setId(const unsigned long long int newId)
 	{
-		Id = id;
+		Id = newId;
 	}
 	string getLongLink()
 	{
 		return longLink;
 	}
-	void setLongLink(string originalLink)
+	void setLongLink(const string newLongLink)
 	{
-		longLink = originalLink; 
+		longLink = newLongLink; 
 	}
 	string getShortLink()
 	{
 		return shortLink;
 	}
-	void setShortLink(string shortenedLink)
+	void setShortLink(const string newShortLink)
 	{
-		shortLink = shortenedLink; 
+		shortLink = newShortLink; 
 	}
 	// convert Id to string
 	string to_String()
 	{
-		string result;
-		result.append(to_string(Id));
+		string result = to_string(Id);
 		result.append(" ");
 		result.append(shortLink);
+		result.pop_back();
 		result.append(" ");
 		result.append(longLink);
+		result.push_back('\0');
+		cout << "inside class, string is:" << result << endl;
 		return result;
 	}
 };
