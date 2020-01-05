@@ -7,6 +7,9 @@ using namespace std;
 
 string decimalToBase62(const unsigned long long int num)
 {
+	cerr << "Inside decimalToBase62:" << endl;
+	cerr << "num is:" << num << endl;
+
 	const string RESULT_NUM_0 = "0";
 	if(num == 0)
 		return RESULT_NUM_0;
@@ -25,8 +28,9 @@ string decimalToBase62(const unsigned long long int num)
 	}
 	// append null terminated character
 	result.push_back('\0');
+	cerr << "result is:" << result << endl;
+	
 	return result;
-	// does it return null terminated string if num=0?
 }
 
 string generateShortLink(const unsigned long long int newId)

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -22,6 +23,9 @@ int getWord(const string linestr, const int startIndex, char * word, const char 
 
 void getValues(const string linestr, URLShortenerFactory &urlShort)
 {
+	cerr << "Inside getValues:" << endl;
+	cerr << "linestr is:" << linestr << endl;
+
 	const int ID_LENGTH = 13;
 	const int SHORT_LINK_LENGTH = 7;
 	const int LONG_LINK_LENGTH = 2048;
@@ -32,26 +36,32 @@ void getValues(const string linestr, URLShortenerFactory &urlShort)
 	// get id
 	int index=0;
 	index = getWord(linestr, index, id, ' ');
+	cerr << "id is:" << id << endl;
 	// validate id is null terminated, has proper length. handle exception
 
 	// get short link
 	index++;
 	index = getWord(linestr, index, shortLink, ' ');
+	cerr << "shortLink is:" << shortLink << endl;
 	// validate shortLink is null terminated, has proper length. handle exception
 		
 	// get long link
 	index++;
 	index = getWord(linestr, index, longLink, '\0');
+	cerr << "longLink is:" << longLink << endl;
 	// validate longLink is null terminated, has proper length. handle exception
 
-	//cout << "id:" << id << endl;
-	//cout << "shortLink:" << shortLink << endl;
-	//cout << "longLink:" << longLink << endl;
 	urlShort.setId(strtoull(id, NULL, 10));
 	urlShort.setShortLink(shortLink);
 	urlShort.setLongLink(longLink);
 
 	return;
+}
+
+string removeChar(string linestring, char c)
+{
+	linestring.erase(remove(linestring.begin(), linestring.end(), c), linestring.end());
+	return linestring;
 }
 
 bool isPresentOriginalLink(const string originalLink, URLShortenerFactory &urlShort)
@@ -76,11 +86,15 @@ bool isPresentOriginalLink(const string originalLink, URLShortenerFactory &urlSh
 	{
 		fgets(linestr, MAX_DB_LINE_LENGTH+1, fpIn);
 		cerr << "linestr is:" << linestr << endl;
-		// fgets appends \0 character
 		// validate linestr is null terminated string. handle exception
+		// fgets appends \0 character
+		// it is also fetching \n, we need to remove it.
+		// remove \n from linestr
+		string linestring = removeChar(linestr, '\n');
+		cerr << "linestring is:" << linestring << endl;
 		
 		// get originalLink
-		getValues(linestr, urlShort);
+		getValues(linestring, urlShort);
 		cerr << "urlShort.getLongLink() returns:" << urlShort.getLongLink() << endl;
 
 		if(urlShort.getLongLink() == originalLink)
@@ -88,9 +102,6 @@ bool isPresentOriginalLink(const string originalLink, URLShortenerFactory &urlSh
 			result = true;
 			break;
 		}
-
-		// avoid comparison with \n
-		fgets(linestr, 2, fpIn);
 	}
 	fclose(fpIn);
 
@@ -120,11 +131,15 @@ bool isPresentShortLink(const string shortenedLink, URLShortenerFactory &urlShor
 	{
 		fgets(linestr, MAX_DB_LINE_LENGTH+1, fpIn);
 		cerr << "linestr is:" << linestr << endl;
-		// fgets appends \0 character
 		// validate linestr is null terminated string. handle exception
+		// fgets appends \0 character
+		// it is also fetching \n, we need to remove it.
+		// remove \n from linestr
+		string linestring = removeChar(linestr, '\n');
+		cerr << "linestring is:" << linestring << endl;
 		
 		// get shortenedLink
-		getValues(linestr, urlShort);
+		getValues(linestring, urlShort);
 		cerr << "urlShort.getShortLink() returns:" << urlShort.getShortLink() << endl;
 
 		if(urlShort.getShortLink() == shortenedLink)
@@ -132,9 +147,6 @@ bool isPresentShortLink(const string shortenedLink, URLShortenerFactory &urlShor
 			result = true;
 			break;
 		}
-
-		// avoid comparison with \n
-		fgets(linestr, 2, fpIn);
 	}
 	fclose(fpIn);
 
@@ -144,6 +156,8 @@ bool isPresentShortLink(const string shortenedLink, URLShortenerFactory &urlShor
 
 unsigned long long int getCurrentRandomId()
 {
+	cerr << "Inside getCurrentRandomId:" << endl;
+
 	unsigned long long int result;
 	// we are persisting this id in first line of file, get that.
 	FILE * fpIn;
@@ -157,11 +171,15 @@ unsigned long long int getCurrentRandomId()
 	const int ID_LENGTH = 13;
 	char linestr[ID_LENGTH+1];
 	fgets(linestr, ID_LENGTH+1, fpIn);
+
+	cerr << "linestr is:" << linestr << endl;
 	// fgets appends \0 character
 	// validate linestr is null terminated string. handle exception
+	
 	string stringResult = linestr;
 		
 	result = strtoull(stringResult.c_str(), NULL, 10);
+	cerr << "result is:" << result << endl;
 	// validate result. handle exception if any.
 
 	return result;
@@ -170,6 +188,10 @@ unsigned long long int getCurrentRandomId()
 void setCurrentRandomId(const unsigned long long int newId)
 {
 	// we are persisting this id in first line of file, store/update it there.
+
+	cerr << "Inside setCurrentRandomId:" << endl;
+	cerr << "newId is:" << newId << endl;
+
 	FILE * fpOut;
 	fpOut = fopen("currentId.txt", "w+");
 	if(fpOut==NULL)
@@ -186,6 +208,8 @@ void setCurrentRandomId(const unsigned long long int newId)
 
 void updateDb(URLShortenerFactory &urlShort)
 {
+	cerr << "Inside updateDb:" << endl;
+
 	FILE * fpOut;
 	fpOut = fopen("url.txt", "a");
 	if(fpOut==NULL)
@@ -195,9 +219,10 @@ void updateDb(URLShortenerFactory &urlShort)
 		//return (-1);
 	}
 	
-	fputs("\n", fpOut);
 	string dbLine = urlShort.to_String();
-	cout << "dbLine is:" << dbLine << endl;
+	cerr << "dbLine is:" << dbLine << endl;
+
+	fputs("\n", fpOut);
 	fputs(dbLine.c_str(), fpOut);
 	fclose(fpOut);
 
