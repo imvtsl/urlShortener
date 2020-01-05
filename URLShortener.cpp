@@ -3,8 +3,7 @@
 
 using namespace std;
 
-#include "URLShortenerFactory.hpp"
-#include "URLShortenerDatabase.hpp"
+#include "URLShortener.hpp"
 
 string decimalToBase62(const unsigned long long int num)
 {
@@ -37,6 +36,9 @@ string generateShortLink(const unsigned long long int newId)
 
 void generate(const string originalLink, char * shortenedLink)
 {
+	cerr << "inside generate:" << endl;
+	cerr << "originalLink is:" << originalLink << endl;
+
 	// validate and handle originalLink
 	URLShortenerFactory urlShort;
 	unsigned long long int id;
@@ -65,6 +67,9 @@ void generate(const string originalLink, char * shortenedLink)
 
 void getOriginalLink(const string shortenedLink, char * originalLink)
 {
+	cerr << "inside getOriginalLink:" << endl;
+	cerr << "shortenedLink is:" << shortenedLink << endl;
+
 	// validate and handle originalLink
 	// check if corresponding entry for shortenedLink exists. if yes, return that.
 	// else return null.
@@ -80,6 +85,9 @@ void getOriginalLink(const string shortenedLink, char * originalLink)
 
 void urlShortener(string queryType)
 {
+	cerr << "inside urlShortener:" << endl;
+	cerr << "queryType is:" << queryType << endl;
+
 	// validate and handle queryType
 	const int SHORT_LINK_LENGTH = 7;
 	const int ORIGINAL_LINK_LENGTH = 2048;
@@ -89,11 +97,15 @@ void urlShortener(string queryType)
 	//cout << "queryType is:" << queryType << endl;
 	if(queryType == "generate")
 	{
-		//cout << "inside if generate" << endl;
-		//cout << "queryType is:" << queryType << endl;
+		cerr << "inside if generate:" << endl;
+		//cerr << "queryType is:" << queryType << endl;
+		
 		cin.getline(originalLink, ORIGINAL_LINK_LENGTH);
+		cerr << "originalLink is:" << originalLink << endl;
 		// validate and handle originalLink
+		
 		generate(originalLink, shortenedLink);
+		
 		//append domain name to shortenedLink.
 		string result = "vat.sl/";
 		result.append(shortenedLink);
@@ -101,7 +113,12 @@ void urlShortener(string queryType)
 	}
 	else if(queryType == "getLink")
 	{
+		cerr << "inside getLink:" << endl;
+
 		cin.getline(shortenedLink, SHORT_LINK_LENGTH);
+		cerr << "shortenedLink is:" << shortenedLink << endl;
+		// validate and handle originalLink
+
 		getOriginalLink(shortenedLink, originalLink);
 		// null check on char array
 		if(originalLink[0] == '\0')

@@ -47,7 +47,7 @@ public:
 		result.append(" ");
 		result.append(longLink);
 		result.push_back('\0');
-		cout << "inside class, string is:" << result << endl;
+		//cout << "inside class, string is:" << result << endl;
 		return result;
 	}
 };

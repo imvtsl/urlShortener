@@ -2,7 +2,7 @@
 
 using namespace std;
 
-#include "URLShortenerFactory.hpp"
+#include "URLShortenerDatabase.hpp"
 
 int getWord(const string linestr, const int startIndex, char * word, const char delimiter)
 {
@@ -56,6 +56,9 @@ void getValues(const string linestr, URLShortenerFactory &urlShort)
 
 bool isPresentOriginalLink(const string originalLink, URLShortenerFactory &urlShort)
 {
+	cerr << "Inside isPresentOriginalLink:" << endl;
+	cerr << "originalLink is:" << originalLink << endl;
+
 	bool result = false;
 	// check database to see if orginal link is there.
 	// if yes update urlShort too.
@@ -72,11 +75,13 @@ bool isPresentOriginalLink(const string originalLink, URLShortenerFactory &urlSh
 	while(!feof(fpIn))
 	{
 		fgets(linestr, MAX_DB_LINE_LENGTH+1, fpIn);
+		cerr << "linestr is:" << linestr << endl;
 		// fgets appends \0 character
 		// validate linestr is null terminated string. handle exception
-		//cout << "linestr is:" << linestr << endl;
+		
 		// get originalLink
 		getValues(linestr, urlShort);
+		cerr << "urlShort.getLongLink() returns:" << urlShort.getLongLink() << endl;
 
 		if(urlShort.getLongLink() == originalLink)
 		{
@@ -89,11 +94,15 @@ bool isPresentOriginalLink(const string originalLink, URLShortenerFactory &urlSh
 	}
 	fclose(fpIn);
 
+	cerr << "result is:" << boolalpha << result << endl;
 	return result;
 }
 
 bool isPresentShortLink(const string shortenedLink, URLShortenerFactory &urlShort)
 {
+	cerr << "Inside isPresentShortLink:" << endl;
+	cerr << "shortenedLink is:" << shortenedLink << endl;
+
 	bool result = false;
 	// check database to see if orginal link is there.
 	// if yes update urlShort too.
@@ -110,11 +119,13 @@ bool isPresentShortLink(const string shortenedLink, URLShortenerFactory &urlShor
 	while(!feof(fpIn))
 	{
 		fgets(linestr, MAX_DB_LINE_LENGTH+1, fpIn);
+		cerr << "linestr is:" << linestr << endl;
 		// fgets appends \0 character
 		// validate linestr is null terminated string. handle exception
-		//cout << "linestr is:" << linestr << endl;
+		
 		// get shortenedLink
 		getValues(linestr, urlShort);
+		cerr << "urlShort.getShortLink() returns:" << urlShort.getShortLink() << endl;
 
 		if(urlShort.getShortLink() == shortenedLink)
 		{
@@ -127,6 +138,7 @@ bool isPresentShortLink(const string shortenedLink, URLShortenerFactory &urlShor
 	}
 	fclose(fpIn);
 
+	cerr << "result is:" << boolalpha << result << endl;
 	return result;
 }
 
